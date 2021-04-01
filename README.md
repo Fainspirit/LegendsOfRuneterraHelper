@@ -1,1 +1,1 @@
-"# LegendsOfRuneterraHelper" 
+A Legends Of Runeterra tool for fun
