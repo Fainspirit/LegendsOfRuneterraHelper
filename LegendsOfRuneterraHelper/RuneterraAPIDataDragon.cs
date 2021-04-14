@@ -13,6 +13,9 @@ namespace LegendsOfRuneterraHelper
 
         Dictionary<string, string> pathDict;
         Dictionary<string, JsonElement> cardJsonDict;
+        Dictionary<string, JsonElement> regionJsonDict;
+        Dictionary<string, ConsoleColor> regionColorings;
+
         List<int> setIDs;
         string locale;
 
@@ -20,6 +23,21 @@ namespace LegendsOfRuneterraHelper
         {
             pathDict = new Dictionary<string, string>();
             cardJsonDict = new Dictionary<string, JsonElement>();
+            regionJsonDict = new Dictionary<string, JsonElement>();
+
+            // Custom colors
+            regionColorings = new Dictionary<string, ConsoleColor>();
+
+            regionColorings.Add("BW", ConsoleColor.Red);
+            regionColorings.Add("DE", ConsoleColor.Yellow);
+            regionColorings.Add("FR", ConsoleColor.Cyan);
+            regionColorings.Add("IO", ConsoleColor.Red);
+            regionColorings.Add("MT", ConsoleColor.DarkMagenta);
+            regionColorings.Add("NX", ConsoleColor.DarkRed);
+            regionColorings.Add("SH", ConsoleColor.DarkYellow);
+            regionColorings.Add("SI", ConsoleColor.Green);
+            regionColorings.Add("PZ", ConsoleColor.DarkYellow);
+
             setIDs = new List<int>();
         }
 
@@ -72,7 +90,7 @@ namespace LegendsOfRuneterraHelper
                     Console.WriteLine("Set directory found: {0}", localDir);
 
                     int setNumber = Convert.ToInt32(localDir[3]) - 48;
-
+                    // This needs substringing or it breaks for sets > 9
                     pathDict.Add("set" + setNumber, absoluteDir);
                     setIDs.Add(setNumber);
 
@@ -91,14 +109,46 @@ namespace LegendsOfRuneterraHelper
             Console.WriteLine("Loading card JSON data");
             string subdirectoryStructure = "\\" + locale + "\\data\\";
             int count;
+            string path;
+
+            // Core
+            path = pathDict["core"] + subdirectoryStructure + "globals-" + locale + ".json";
+            if (File.Exists(path))
+            {
+                Console.WriteLine("Loading Core Data");
+
+                Stream sr = new StreamReader(path).BaseStream;
+                JsonDocument coreRootDoc = JsonDocument.Parse(sr);
+                JsonElement rootElement = coreRootDoc.RootElement;
+
+
+                // Vocab
+
+                // Keywords
+
+                // Regions
+                JsonElement regionsElement = rootElement.GetProperty("regions");
+                foreach (JsonElement regionElement in regionsElement.EnumerateArray())
+                {
+                    string abbreviation = regionElement.GetProperty("abbreviation").ToString();
+                    regionJsonDict.Add(abbreviation, regionElement);
+                }
+
+                // SpellSpeed
+
+                // Rarity
+
+                // Sets
+
+            }
 
             // Cards
-           foreach (int i in setIDs)
+            foreach (int i in setIDs)
             {
                 count = 0;
 
                 //ew
-                string path = pathDict["set" + i] + subdirectoryStructure + "set" + i + "-" + locale + ".json";
+                path = pathDict["set" + i] + subdirectoryStructure + "set" + i + "-" + locale + ".json";
 
                 if (File.Exists(path))
                 {
@@ -118,8 +168,9 @@ namespace LegendsOfRuneterraHelper
                 }
 
                 Console.WriteLine("Loaded {0} cards from set {1}", count, i);
-
             }
+
+
         }
 
         public string GetCardName(string ID)
@@ -129,6 +180,31 @@ namespace LegendsOfRuneterraHelper
                 return cardJsonDict[ID].GetProperty("name").ToString();
             }
             return "";
+        }
+
+
+        public void PrintCardProperty(JsonProperty cardProperty, bool pretty)
+        {
+            string cardID = cardProperty.Name;
+            string cardCount = cardProperty.Value.ToString();
+
+            if (!pretty)
+            {
+                Console.WriteLine(cardCount + "x " + GetCardName(cardID));
+            }
+            else 
+            {
+                // This can indicate rarity, keywords, type, etc
+                string regionID = cardID.Substring(2, 2);
+                ConsoleColor color = ConsoleColor.White;
+                regionColorings.TryGetValue(regionID, out color);
+
+                Console.Write(cardCount + "x ");
+                Console.ForegroundColor = color;
+                Console.WriteLine(GetCardName(cardID));
+
+                Console.ResetColor();
+            }
         }
 
         // State Query
