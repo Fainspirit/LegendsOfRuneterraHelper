@@ -9,7 +9,9 @@ namespace LegendsOfRuneterraHelper
     {
         static void Main(string[] args)
         {
-            RuneterraAPIHelper apiHelper = RuneterraAPIHelper.GetInstance();
+            RuneterraAPINetHelper apiHelper = RuneterraAPINetHelper.GetInstance();
+            RuneterraAPIDataDragon dataDragon = RuneterraAPIDataDragon.GetInstance();
+
             Console.WriteLine("Trying to connect to game server at {0}", apiHelper.GetEndpointString());
 
             bool wantToExit = false;
@@ -35,11 +37,20 @@ namespace LegendsOfRuneterraHelper
                 JsonElement expeditionRoot;
                 JsonElement gameResultRoot;
                 JsonElement positionalRectanglesRoot;
-
                 JsonElement Rectangles;
 
 
-                float delay = 5.0f;
+                int delay = 5000;
+
+                // Set locale
+                dataDragon.SetLocale("en_us");
+                // Find the directories with our data files 
+                dataDragon.LocateDataFilePaths();
+                // Load the card data JSON
+                dataDragon.ParseData();
+
+                Console.WriteLine("Beginning Game Data Queries");
+                Console.WriteLine();
 
                 // Continually query and output the API state for now
                 // Sends a query every delay seconds
@@ -60,20 +71,34 @@ namespace LegendsOfRuneterraHelper
 
                     if (positionalRectanglesRoot.TryGetProperty("Rectangles", out Rectangles))
                     {
-                        Console.WriteLine(Rectangles);
-                        Console.WriteLine();
+                        //Console.WriteLine(Rectangles);
+                        //Console.WriteLine();
                     }
 
-                    Console.WriteLine("Deck: " + deckRoot);
+                    //Console.WriteLine("Deck: " + deckRoot);
+
+                    // Get Deck Cards
+                    JsonElement cardsRoot;
+                    deckRoot.TryGetProperty("CardsInDeck", out cardsRoot);
+
+                    // If the cards exist
+                    if (cardsRoot.ValueKind != JsonValueKind.Null)
+                    {
+                        // { ID : count }
+                        foreach (JsonProperty e in cardsRoot.EnumerateObject())
+                        {
+                            string cardName = dataDragon.GetCardName(e.Name.ToString());
+                            Console.WriteLine(e.Value + "x " + cardName);
+                        }
+                    }
                     Console.WriteLine();
 
                     //Console.WriteLine("Expedition: " + expeditionRoot);
                     //Console.WriteLine("Last Game Result: " + gameResultRoot);
                     //Console.WriteLine("Positional Rectangles: " + positionalRectanglesRoot);
                     Console.WriteLine();
-                    Console.WriteLine();
                     // Sleep for delay seconds
-                    Thread.Sleep(1000 * 5);
+                    Thread.Sleep(delay);
                 }
             }
         }

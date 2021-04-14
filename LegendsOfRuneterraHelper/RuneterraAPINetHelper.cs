@@ -5,31 +5,31 @@ using System.Text;
 using System.Text.Json;
 namespace LegendsOfRuneterraHelper
 {
-    public class RuneterraAPIHelper
+    public class RuneterraAPINetHelper
     {
-        static RuneterraAPIHelper instance;
+        static RuneterraAPINetHelper instance;
 
         static readonly string STATIC_DECKLIST_ENDPOINT = "static-decklist";
         static readonly string POSITIONAL_RECTANGLES_ENDPOINT = "positional-rectangles";
         static readonly string EXPEDITION_STATUS_ENDPOINT = "expeditions-state";
         static readonly string GAME_RESULT_ENDPOINT = "game-result";
-
         static int DEFAULT_PORT = 21337;
         static string DEFAULT_ADDRESS = "127.0.0.1";
-        static IPEndPoint localEndpoint;
-        static Ping ping;
+
+         IPEndPoint localEndpoint;
+         Ping ping;
 
         /////////////////////
         // PUBLIC METHODS //
         /////////////////////
         
-        public static RuneterraAPIHelper GetInstance()
+        public static RuneterraAPINetHelper GetInstance()
         {
             if (instance != null)
             {
                 return instance;
             }
-            instance = new RuneterraAPIHelper();
+            instance = new RuneterraAPINetHelper();
             return instance;
 
         }
@@ -132,7 +132,7 @@ namespace LegendsOfRuneterraHelper
             }
         }
 
-        private RuneterraAPIHelper()
+        private RuneterraAPINetHelper()
         {
             SetAddress(DEFAULT_ADDRESS + ":" + DEFAULT_PORT);
             ping = new Ping();
